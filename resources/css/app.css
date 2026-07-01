@@ -9,12 +9,28 @@
 @theme {
     --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
     --font-serif: 'Playfair Display', Georgia, serif;
-    --color-brand-moss: oklch(0.550 0.119 160.0);
+    --color-brand-moss: oklch(0.680 0.085 245.0);
     --color-brand-steel: oklch(0.520 0.080 240.0);
+    --color-brand-blue: oklch(0.680 0.085 245.0);
+    --color-brand-sky: oklch(0.750 0.160 220.0);
     --color-editorial-ink: oklch(0.150 0.010 160.0);
     --color-editorial-paper: oklch(0.990 0.002 160.0);
     --color-dark-ink: oklch(0.950 0.005 160.0);
     --color-dark-paper: oklch(0.080 0.002 160.0);
+}
+
+html {
+    font-size: 15px;
+}
+@media (min-width: 640px) {
+    html {
+        font-size: 16px;
+    }
+}
+@media (min-width: 1024px) {
+    html {
+        font-size: 17px;
+    }
 }
 
 /* Custom Scrollbar */
@@ -30,7 +46,7 @@
     border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(140, 140, 140, 0.3);
+    background: var(--color-brand-blue);
 }
 
 /* Ambient Dot Grid Background Pattern */
@@ -107,6 +123,22 @@
 }
 .bento-card-steel:hover {
     border-color: var(--color-brand-steel);
+}
+.bento-card-blue:hover {
+    border-color: var(--color-brand-blue);
+}
+
+/* Vue Slide Fade Transition */
+.slide-fade-enter-active {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.slide-fade-leave-active {
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+    transform: translateY(-8px);
+    opacity: 0;
 }
 
 

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, onUnmounted } from 'vue';
 
 const props = defineProps({
     projectId: {
@@ -13,6 +13,7 @@ const loading = ref(true);
 const submittingComment = ref(false);
 const isDark = ref(false);
 const selectedImage = ref('');
+const showMobileMenu = ref(false);
 
 const authorName = ref('');
 const commentContent = ref('');
@@ -405,42 +406,64 @@ onMounted(() => {
         isDark.value = false;
         document.documentElement.classList.remove('dark');
     }
+
+    window.addEventListener('click', handleClickOutside);
+});
+
+const handleClickOutside = (event) => {
+    const buttonEl = document.getElementById('mobile-options-button');
+    const menuEl = document.getElementById('mobile-options-dropdown');
+    if (showMobileMenu.value && buttonEl && menuEl) {
+        if (!buttonEl.contains(event.target) && !menuEl.contains(event.target)) {
+            showMobileMenu.value = false;
+        }
+    }
+};
+
+onUnmounted(() => {
+    window.removeEventListener('click', handleClickOutside);
 });
 </script>
 
 <template>
     <div
-        class="min-h-screen bg-[#fafaf9] dark:bg-[#070707] text-neutral-900 dark:text-neutral-100 font-sans transition-colors duration-500 flex flex-col justify-between selection:bg-brand-moss selection:text-white scroll-smooth relative overflow-hidden bg-grid-dots">
+        class="min-h-screen bg-[#94d2ff]/15 dark:bg-[#07090c] text-neutral-900 dark:text-neutral-100 font-sans transition-colors duration-500 flex flex-col justify-between selection:bg-brand-moss selection:text-white scroll-smooth relative overflow-hidden bg-grid-dots">
 
         <div
-            class="absolute top-[-10%] left-[-10%] w-[55vw] h-[55vw] rounded-full bg-brand-moss/12 dark:bg-brand-moss/6 blur-[125px] pointer-events-none z-0 animate-pulse-glow-1">
+            class="absolute top-[-5%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-brand-moss/12 dark:bg-brand-moss/6 blur-[125px] pointer-events-none z-0 animate-pulse-glow-1">
         </div>
         <div
-            class="absolute top-[35%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-brand-steel/12 dark:bg-brand-steel/6 blur-[145px] pointer-events-none z-0 animate-pulse-glow-2">
+            class="absolute top-[15%] right-[-10%] w-[55vw] h-[55vw] rounded-full bg-brand-sky/25 dark:bg-brand-sky/12 blur-[150px] pointer-events-none z-0 animate-pulse-glow-2">
+        </div>
+        <div
+            class="absolute top-[45%] left-[-15%] w-[60vw] h-[60vw] rounded-full bg-brand-sky/22 dark:bg-brand-sky/10 blur-[150px] pointer-events-none z-0 animate-pulse-glow-1">
+        </div>
+        <div
+            class="absolute bottom-[2%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-brand-moss/10 dark:bg-brand-moss/5 blur-[135px] pointer-events-none z-0 animate-pulse-glow-2">
         </div>
 
-        <div class="fixed top-6 left-0 right-0 z-40 px-4 flex justify-center">
+        <!-- Desktop Centered Capsule Header (Hidden on Mobile) -->
+        <div class="fixed top-6 left-0 right-0 z-40 px-4 pointer-events-none hidden sm:flex justify-center">
             <div
-                class="flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-6 h-12 sm:h-14 bg-white/80 dark:bg-[#0c0c0b]/85 border border-neutral-200/50 dark:border-neutral-800 rounded-full backdrop-blur-lg shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_35_rgba(0,0,0,0.45)] max-w-xl w-full transition-all duration-300">
+                class="pointer-events-auto flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-6 h-12 sm:h-14 bg-white/80 dark:bg-[#0c0c0b]/85 border border-neutral-200/50 dark:border-neutral-800 rounded-full backdrop-blur-lg shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_35_rgba(0,0,0,0.45)] max-w-xl w-full transition-all duration-300">
                 <a href="/"
                     class="font-serif text-sm sm:text-base font-extrabold hover:text-brand-moss transition-colors">ZB</a>
 
-                <span class="text-xs font-mono uppercase tracking-widest text-neutral-450 dark:text-neutral-400">Detail
-                    Project</span>
+                <span class="text-xs font-sans uppercase tracking-widest text-neutral-450 dark:text-neutral-400 font-semibold">Detail Project</span>
 
                 <div class="flex items-center gap-3">
                     <button v-if="isOwner" @click="openEditModal"
-                        class="text-xs font-mono text-brand-steel hover:underline font-semibold cursor-pointer focus:outline-none transition-colors"
+                        class="text-xs font-sans text-brand-steel hover:underline font-semibold cursor-pointer focus:outline-none transition-colors"
                         title="Edit Project">
                         Edit
                     </button>
                     <button v-if="isOwner" @click="deleteProject"
-                        class="text-xs font-mono text-red-500 hover:text-red-600 cursor-pointer focus:outline-none transition-colors"
+                        class="text-xs font-sans text-red-500 hover:text-red-600 cursor-pointer focus:outline-none transition-colors"
                         title="Hapus Project">
                         Hapus
                     </button>
                     <a href="/#projects"
-                        class="text-xs font-mono hover:text-brand-moss transition-colors flex items-center gap-1">
+                        class="text-xs font-sans hover:text-brand-moss transition-colors flex items-center gap-1 font-semibold">
                         Kembali
                     </a>
 
@@ -454,7 +477,55 @@ onMounted(() => {
             </div>
         </div>
 
-        <div class="max-w-5xl mx-auto px-6 pt-36 sm:pt-40 pb-16 w-full flex-grow relative z-10">
+        <!-- Mobile Floating Options Button & Dropdown (Visible only on Mobile) -->
+        <div class="fixed top-6 left-6 z-40 sm:hidden pointer-events-none">
+            <button id="mobile-options-button" @click="showMobileMenu = !showMobileMenu"
+                class="pointer-events-auto flex items-center gap-2 border border-neutral-200 dark:border-neutral-800 px-3 py-1.5 rounded-full cursor-pointer focus:outline-none bg-white/80 dark:bg-[#0c0c0b]/80 backdrop-blur-lg shadow-md transition-all select-none animate-fade-in"
+                :class="{ 'border-brand-moss text-brand-moss bg-brand-moss/5': showMobileMenu }">
+                <span class="font-serif text-sm font-extrabold">ZB</span>
+                <svg v-if="!showMobileMenu" class="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <svg v-else class="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <!-- Mobile Dropdown Menu -->
+            <transition name="slide-fade">
+                <div id="mobile-options-dropdown" v-if="showMobileMenu" 
+                    class="pointer-events-auto mt-2 p-3 bg-white/95 dark:bg-[#0c0c0b]/95 border border-neutral-200/50 dark:border-neutral-800 rounded-2xl backdrop-blur-lg shadow-xl flex flex-col gap-2.5 w-[200px] select-none text-left">
+                    
+                    <div class="flex items-center justify-between pb-2 border-b border-neutral-200/50 dark:border-neutral-800/40">
+                        <a href="/" class="font-serif text-sm font-extrabold hover:text-brand-moss">ZB</a>
+                        <button @click="toggleTheme"
+                            class="w-6.5 h-6.5 flex items-center justify-center border border-neutral-200/80 dark:border-neutral-800 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-all text-xs cursor-pointer focus:outline-none bg-white/50 dark:bg-neutral-900/50"
+                            aria-label="Toggle Theme">
+                            <span v-if="isDark">☀️</span>
+                            <span v-else>🌙</span>
+                        </button>
+                    </div>
+
+                    <a href="/#projects"
+                        class="w-full text-left py-1 px-2 hover:bg-neutral-50 dark:hover:bg-neutral-900 rounded-lg text-xs font-sans font-semibold text-neutral-500 dark:text-neutral-400 transition-colors">
+                        Kembali
+                    </a>
+
+                    <div v-if="isOwner" class="pt-2 border-t border-neutral-200/50 dark:border-neutral-800/40 flex flex-col gap-2">
+                        <button @click="openEditModal(); showMobileMenu = false"
+                            class="w-full text-left text-xs font-sans text-brand-steel hover:underline py-1 px-2 hover:bg-neutral-50 dark:hover:bg-neutral-900 rounded-lg cursor-pointer focus:outline-none font-semibold">
+                            Edit
+                        </button>
+                        <button @click="deleteProject(); showMobileMenu = false"
+                            class="w-full text-left text-xs font-sans text-red-500 hover:underline py-1 px-2 hover:bg-neutral-50 dark:hover:bg-neutral-900 rounded-lg cursor-pointer focus:outline-none font-semibold">
+                            Hapus
+                        </button>
+                    </div>
+                </div>
+            </transition>
+        </div>
+
+        <div class="max-w-5xl mx-auto px-6 pt-20 sm:pt-40 pb-16 w-full flex-grow relative z-10">
             <div v-if="loading" class="flex flex-col justify-center items-center py-32 space-y-4">
                 <div class="w-10 h-10 border-4 border-brand-moss border-t-transparent rounded-full animate-spin"></div>
                 <span class="text-xs font-mono text-neutral-400">Memuat project...</span>
@@ -467,10 +538,10 @@ onMounted(() => {
                     <div class="lg:col-span-2 space-y-6">
                         <article class="bento-card rounded-3xl p-6 sm:p-8 space-y-6">
                             <div class="space-y-3">
-                                <div class="flex items-center gap-3 text-xs font-mono text-neutral-400">
-                                    <span>DATA PROJECT</span>
+                                <div class="flex items-center gap-3 text-xs font-sans text-neutral-400 font-semibold">
+                                    <span class="uppercase tracking-wider">DATA PROJECT</span>
                                     <span
-                                        class="text-xs text-brand-moss bg-brand-moss/10 px-2.5 py-0.5 rounded-full border border-brand-moss/20 font-semibold">
+                                        class="text-xs text-brand-moss bg-brand-moss/10 px-2.5 h-5 rounded-full border border-brand-moss/20 font-semibold whitespace-nowrap inline-flex items-center justify-center leading-none">
                                         {{ project.focus_areas.split(',')[0] }}
                                     </span>
                                 </div>
@@ -779,25 +850,25 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-    background: #fafaf9;
+    background: #eff8ff;
 }
 
 .dark ::-webkit-scrollbar-track {
-    background: #070707;
+    background: #07090c;
 }
 
 ::-webkit-scrollbar-thumb {
     background: #d6d6d4;
     border-radius: 9999px;
-    border: 3px solid #fafaf9;
+    border: 3px solid #eff8ff;
 }
 
 .dark ::-webkit-scrollbar-thumb {
     background: #2a2a28;
-    border: 3px solid #070707;
+    border: 3px solid #07090c;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #879673;
+    background: #3182ce;
 }
 </style>

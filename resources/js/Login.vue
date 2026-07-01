@@ -81,7 +81,7 @@ onMounted(() => {
 
 <template>
     <div
-        class="min-h-screen bg-[#fafaf9] dark:bg-[#070707] text-neutral-900 dark:text-neutral-100 font-sans transition-colors duration-500 flex flex-col justify-center items-center relative overflow-hidden bg-grid-dots selection:bg-brand-moss selection:text-white">
+        class="min-h-screen bg-[#94d2ff]/15 dark:bg-[#07090c] text-neutral-900 dark:text-neutral-100 font-sans transition-colors duration-500 flex flex-col justify-center items-center relative overflow-hidden bg-grid-dots selection:bg-brand-moss selection:text-white">
 
         <div
             class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-brand-moss/12 dark:bg-brand-moss/6 blur-[125px] pointer-events-none z-0 animate-pulse-glow-1">

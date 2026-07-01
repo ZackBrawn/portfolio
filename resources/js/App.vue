@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue';
 
 // state
 const projects = ref([]);
@@ -10,6 +10,15 @@ const isDark = ref(false);
 const activeSection = ref('about');
 const activeTab = ref('logs');
 let isScrollingProgrammatically = false;
+const showMobileMenu = ref(false);
+const handleMobileNavClick = (section) => {
+    scrollTo(section);
+    showMobileMenu.value = false;
+};
+const handleLogoutMobile = async () => {
+    await handleLogout();
+    showMobileMenu.value = false;
+};
 
 // pagination
 const currentPage = ref(1);
@@ -501,6 +510,12 @@ const handleCreateProject = async () => {
 };
 
 const sections = ['about', 'experience', 'projects', 'contact'];
+const sectionLabels = {
+    about: 'tentang',
+    experience: 'pengalaman',
+    projects: 'program',
+    contact: 'kontak'
+};
 
 onMounted(() => {
     checkAuthStatus();
@@ -528,50 +543,73 @@ onMounted(() => {
         const el = document.getElementById(id);
         if (el) observer.observe(el);
     });
+
+    window.addEventListener('click', handleClickOutside);
+});
+
+const handleClickOutside = (event) => {
+    const buttonEl = document.getElementById('mobile-options-button');
+    const menuEl = document.getElementById('mobile-options-dropdown');
+    if (showMobileMenu.value && buttonEl && menuEl) {
+        if (!buttonEl.contains(event.target) && !menuEl.contains(event.target)) {
+            showMobileMenu.value = false;
+        }
+    }
+};
+
+onUnmounted(() => {
+    window.removeEventListener('click', handleClickOutside);
 });
 </script>
 
 <template>
     <div
-        class="min-h-screen bg-[#fafaf9] dark:bg-[#070707] text-neutral-900 dark:text-neutral-100 font-sans transition-colors duration-500 flex flex-col justify-between selection:bg-brand-moss selection:text-white scroll-smooth relative overflow-hidden bg-grid-dots">
+        class="min-h-screen bg-[#94d2ff]/15 dark:bg-[#07090c] text-neutral-900 dark:text-neutral-100 font-sans transition-colors duration-500 flex flex-col justify-between selection:bg-brand-moss selection:text-white scroll-smooth relative overflow-hidden bg-grid-dots">
 
         <div
-            class="absolute top-[-10%] left-[-10%] w-[55vw] h-[55vw] rounded-full bg-brand-moss/12 dark:bg-brand-moss/6 blur-[125px] pointer-events-none z-0 animate-pulse-glow-1">
+            class="absolute top-[-5%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-brand-moss/12 dark:bg-brand-moss/6 blur-[125px] pointer-events-none z-0 animate-pulse-glow-1">
         </div>
         <div
-            class="absolute top-[35%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-brand-steel/12 dark:bg-brand-steel/6 blur-[145px] pointer-events-none z-0 animate-pulse-glow-2">
+            class="absolute top-[10%] right-[-10%] w-[55vw] h-[55vw] rounded-full bg-brand-sky/25 dark:bg-brand-sky/12 blur-[150px] pointer-events-none z-0 animate-pulse-glow-2">
         </div>
         <div
-            class="absolute bottom-[-10%] left-[15%] w-[50vw] h-[50vw] rounded-full bg-brand-moss/10 dark:bg-brand-moss/4 blur-[135px] pointer-events-none z-0 animate-pulse-glow-1">
+            class="absolute top-[40%] left-[-15%] w-[60vw] h-[60vw] rounded-full bg-brand-sky/22 dark:bg-brand-sky/10 blur-[150px] pointer-events-none z-0 animate-pulse-glow-1">
+        </div>
+        <div
+            class="absolute top-[65%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-brand-moss/10 dark:bg-brand-moss/5 blur-[135px] pointer-events-none z-0 animate-pulse-glow-2">
+        </div>
+        <div
+            class="absolute bottom-[2%] left-[-10%] w-[55vw] h-[55vw] rounded-full bg-brand-sky/25 dark:bg-brand-sky/12 blur-[150px] pointer-events-none z-0 animate-pulse-glow-1">
         </div>
 
-        <div class="fixed top-6 left-0 right-0 z-40 px-4 pointer-events-none flex justify-center">
+        <!-- Desktop Centered Capsule Header (Hidden on Mobile) -->
+        <div class="fixed top-6 left-0 right-0 z-40 px-4 pointer-events-none hidden sm:flex justify-center">
             <div
-                class="pointer-events-auto flex items-center justify-between gap-1.5 xs:gap-2 sm:gap-6 px-3 sm:px-6 h-12 sm:h-14 bg-white/80 dark:bg-[#0c0c0b]/85 border border-neutral-200/50 dark:border-neutral-800 rounded-full backdrop-blur-lg shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_35px_rgba(0,0,0,0.45)] max-w-xl w-full transition-all duration-300">
+                class="pointer-events-auto flex items-center justify-between gap-3 px-6 h-14 bg-white/80 dark:bg-[#0c0c0b]/85 border border-neutral-200/50 dark:border-neutral-800 rounded-full backdrop-blur-lg shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_35px_rgba(0,0,0,0.45)] max-w-xl w-full transition-all duration-300">
                 <span @click="scrollTo('about')"
-                    class="font-serif text-xs sm:text-base font-extrabold cursor-pointer hover:text-brand-moss transition-colors">ZB</span>
+                    class="font-serif text-base font-extrabold cursor-pointer hover:text-brand-moss transition-colors">ZB</span>
 
                 <nav
-                    class="flex items-center gap-1.5 xs:gap-2 sm:gap-4 md:gap-6 text-[9px] sm:text-xs font-mono tracking-wider uppercase shrink-0">
+                    class="flex items-center gap-4 md:gap-6 text-xs font-mono tracking-wider uppercase shrink-0">
                     <button v-for="section in sections" :key="section" @click="scrollTo(section)"
                         class="capitalize hover:text-brand-moss transition-all cursor-pointer focus:outline-none relative py-1"
                         :class="activeSection === section ? 'text-brand-moss font-bold' : 'text-neutral-400 dark:text-neutral-500'">
-                        {{ section }}
+                        {{ sectionLabels[section] }}
                         <span v-if="activeSection === section"
                             class="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-moss rounded-full animate-pulse"></span>
                     </button>
                 </nav>
 
-                <div class="flex items-center gap-1.5 sm:gap-2">
+                <div class="flex items-center gap-2">
                     <button @click="toggleTheme"
-                        class="w-6.5 h-6.5 sm:w-8 sm:h-8 flex items-center justify-center border border-neutral-200/80 dark:border-neutral-800 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-all text-xs sm:text-sm cursor-pointer focus:outline-none bg-white/50 dark:bg-neutral-900/50"
+                        class="w-8 h-8 flex items-center justify-center border border-neutral-200/80 dark:border-neutral-800 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-all text-sm cursor-pointer focus:outline-none bg-white/50 dark:bg-neutral-900/50"
                         aria-label="Toggle Theme">
                         <span v-if="isDark">☀️</span>
                         <span v-else>🌙</span>
                     </button>
 
                     <button v-if="isOwner" @click="handleLogout"
-                        class="text-[8.5px] sm:text-[10px] font-mono text-red-500 hover:text-red-600 border border-red-500/20 px-1.5 py-0.5 rounded-full cursor-pointer focus:outline-none"
+                        class="text-[10px] font-mono text-red-500 hover:text-red-600 border border-red-500/20 px-2 py-0.5 rounded-full cursor-pointer focus:outline-none"
                         title="Logout Owner">
                         Logout
                     </button>
@@ -579,7 +617,52 @@ onMounted(() => {
             </div>
         </div>
 
-        <div class="max-w-6xl mx-auto px-6 pt-36 sm:pt-40 pb-16 w-full flex-grow relative z-10">
+        <!-- Mobile Floating Options Button & Dropdown (Visible only on Mobile) -->
+        <div class="fixed top-6 left-6 z-40 sm:hidden pointer-events-none">
+            <button id="mobile-options-button" @click="showMobileMenu = !showMobileMenu"
+                class="pointer-events-auto flex items-center gap-2 border border-neutral-200 dark:border-neutral-800 px-3 py-1.5 rounded-full cursor-pointer focus:outline-none bg-white/80 dark:bg-[#0c0c0b]/80 backdrop-blur-lg shadow-md transition-all select-none"
+                :class="{ 'border-brand-moss text-brand-moss bg-brand-moss/5': showMobileMenu }">
+                <span class="font-serif text-sm font-extrabold">ZB</span>
+                <svg v-if="!showMobileMenu" class="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <svg v-else class="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <!-- Mobile Dropdown Menu -->
+            <transition name="slide-fade">
+                <div id="mobile-options-dropdown" v-if="showMobileMenu" 
+                    class="pointer-events-auto mt-2 p-3 bg-white/95 dark:bg-[#0c0c0b]/95 border border-neutral-200/50 dark:border-neutral-800 rounded-2xl backdrop-blur-lg shadow-xl flex flex-col gap-2.5 w-[200px] select-none text-left">
+                    
+                    <div class="flex items-center justify-between pb-2 border-b border-neutral-200/50 dark:border-neutral-800/40">
+                        <span @click="handleMobileNavClick('about')" class="font-serif text-sm font-extrabold cursor-pointer hover:text-brand-moss">ZB</span>
+                        <button @click="toggleTheme"
+                            class="w-6.5 h-6.5 flex items-center justify-center border border-neutral-200/80 dark:border-neutral-800 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-all text-xs cursor-pointer focus:outline-none bg-white/50 dark:bg-neutral-900/50"
+                            aria-label="Toggle Theme">
+                            <span v-if="isDark">☀️</span>
+                            <span v-else>🌙</span>
+                        </button>
+                    </div>
+
+                    <button v-for="section in sections" :key="section" @click="handleMobileNavClick(section)"
+                        class="w-full text-left capitalize py-1 px-2 hover:bg-neutral-50 dark:hover:bg-neutral-900 rounded-lg text-xs font-mono transition-colors focus:outline-none cursor-pointer"
+                        :class="activeSection === section ? 'text-brand-moss font-bold bg-neutral-50/50 dark:bg-neutral-900/50' : 'text-neutral-500 dark:text-neutral-400'">
+                        {{ sectionLabels[section] }}
+                    </button>
+
+                    <div v-if="isOwner" class="pt-2 border-t border-neutral-200/50 dark:border-neutral-800/40">
+                        <button @click="handleLogoutMobile"
+                            class="w-full text-left text-[14px] font-mono text-red-500 hover:text-red-600 py-1 px-2 hover:bg-red-50/20 rounded-lg cursor-pointer focus:outline-none">
+                            Keluar
+                        </button>
+                    </div>
+                </div>
+            </transition>
+        </div>
+
+        <div class="max-w-6xl mx-auto px-6 pt-20 sm:pt-40 pb-16 w-full flex-grow relative z-10">
             <div class="space-y-36">
 
                 <!-- 1 about-->
@@ -588,8 +671,8 @@ onMounted(() => {
 
                         <!-- 1 Bio -->
                         <div
-                            class="bento-card bento-card-moss rounded-3xl p-8 flex flex-col justify-between min-h-[380px] lg:col-span-2 lg:row-span-2 order-2 md:order-none">
-                            <div class="space-y-4">
+                            class="bento-card bento-card-moss rounded-3xl p-8 lg:p-10 lg:col-span-3 flex flex-col lg:flex-row justify-between gap-8 lg:gap-12 items-start order-1 md:order-none">
+                            <div class="flex-grow max-w-3xl space-y-6 text-left order-2 lg:order-none">
                                 <div
                                     class="inline-flex items-center gap-2 px-3 py-1 bg-brand-steel/10 text-brand-steel border border-brand-steel/20 rounded-full text-xs font-mono font-medium shadow-xs">
                                     <span>Campaign & Advocacy Coordinator</span>
@@ -598,62 +681,33 @@ onMounted(() => {
                                     class="text-4xl md:text-5xl lg:text-6xl font-serif tracking-tight font-extrabold leading-tight text-neutral-900 dark:text-neutral-50">
                                     Memobilisasi masyarakat untuk kemajuan lingkungan dan sosial.
                                 </h1>
+                                <p
+                                    class="text-lg font-sans leading-relaxed text-neutral-600 dark:text-neutral-400 max-w-[55ch]">
+                                    Saya Zack Brawn. Saya mengkoordinasikan advokasi, mengorganisir aksi komunitas, dan
+                                    merancang strategi yang berfokus pada dampak. Mari kita bangun jaringan yang mendorong
+                                    dampak ekologis dan sosial yang terukur.
+                                </p>
+                                <div class="pt-6 border-t border-neutral-200/50 dark:border-neutral-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-6 w-full mt-8">
+                                    <div class="flex flex-wrap items-center gap-4">
+                                        <button @click="scrollTo('projects')"
+                                            class="text-xs font-mono px-6 py-3 bg-neutral-900 hover:bg-brand-moss text-white dark:bg-neutral-100 dark:hover:bg-brand-moss dark:text-neutral-900 dark:hover:text-white rounded-full transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer">
+                                            Jelajahi Program
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                            <p
-                                class="text-lg font-sans leading-relaxed text-neutral-600 dark:text-neutral-400 max-w-[55ch] mt-6">
-                                Saya Zack Brawn. Saya mengkoordinasikan advokasi, mengorganisir aksi komunitas, dan
-                                merancang strategi yang berfokus pada dampak. Mari kita bangun jaringan yang mendorong
-                                dampak ekologis dan sosial yang terukur. </p>
-                            <div class="pt-8 flex flex-wrap items-center gap-4">
-                                <button @click="scrollTo('projects')"
-                                    class="text-xs font-mono px-6 py-3 bg-neutral-900 hover:bg-brand-moss text-white dark:bg-neutral-100 dark:hover:bg-brand-moss dark:text-neutral-900 dark:hover:text-white rounded-full transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer">
-                                    Jelajahi Program
-                                </button>
-                                <button @click="scrollTo('contact')"
-                                    class="text-xs font-mono text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 px-4 py-3 rounded-full hover:bg-neutral-100/50 dark:hover:bg-neutral-900/30 transition-all cursor-pointer">
-                                    Bergabung
-                                </button>
-                            </div>
-                        </div>
 
-                        <!-- 2 profile -->
-                        <div
-                            class="bento-card rounded-3xl p-6 flex flex-col justify-between min-h-[380px] lg:row-span-2 order-1 md:order-none">
-                            <div class="flex flex-col items-center gap-4 text-center">
-                                <div class="relative group">
+                            <div class="w-full lg:w-[400px] flex-shrink-0 flex flex-col items-center gap-4 text-center mx-auto lg:mx-0 order-1 lg:order-none">
+                                <div class="relative group w-full">
                                     <div
-                                        class="absolute inset-0 bg-gradient-to-br from-brand-moss to-brand-steel rounded-3xl opacity-20 blur-md group-hover:opacity-35 transition-opacity duration-300">
+                                        class="absolute inset-0 bg-gradient-to-br from-brand-moss to-brand-blue rounded-3xl opacity-20 blur-md group-hover:opacity-35 transition-opacity duration-300">
                                     </div>
                                     <img :src="'/avatar.png'" alt="Zack Brawn Portrait"
-                                        class="w-full max-w-[280px] aspect-square mx-auto rounded-3xl object-cover border-2 border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 relative z-10 transition-transform duration-500 group-hover:scale-[1.03]" />
+                                        class="w-full aspect-square rounded-3xl object-cover border-2 border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 relative z-10 transition-transform duration-500 group-hover:scale-[1.03]" />
                                 </div>
-                                <div>
-                                    <span
-                                        class="block text-sm font-semibold text-neutral-800 dark:text-neutral-200">Zack
-                                        Brawn</span>
-                                    <span class="text-xs font-mono text-neutral-450">Campaign Coordinator</span>
-                                </div>
-                            </div>
-
-                            <div class="pt-6 border-t border-neutral-200/50 dark:border-neutral-800/40 space-y-4">
                                 <div class="space-y-1">
-                                    <span
-                                        class="block text-[10px] font-mono text-neutral-400 uppercase tracking-widest text-left">Lokasi</span>
-                                    <span
-                                        class="block font-serif font-bold text-lg text-neutral-800 dark:text-neutral-200 text-left">Semarang,
-                                        Jawa Tengah</span>
-                                </div>
-                                <div class="flex items-center justify-between text-xs font-mono">
-                                    <div class="flex items-center gap-2">
-                                        <span class="relative flex h-2 w-2">
-                                            <span
-                                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-moss opacity-75"></span>
-                                            <span
-                                                class="relative inline-flex rounded-full h-2 w-2 bg-brand-moss"></span>
-                                        </span>
-                                        <span class="text-brand-moss font-semibold">Tersedia untuk kontrak</span>
-                                    </div>
-                                    <span class="text-neutral-400">WIB (UTC+7)</span>
+                                    <span class="block text-lg font-bold text-neutral-800 dark:text-neutral-200">Zack Brawn</span>
+                                    <span class="block text-xs font-mono text-neutral-455">Campaign Coordinator</span>
                                 </div>
                             </div>
                         </div>
@@ -677,7 +731,7 @@ onMounted(() => {
                                     class="text-xs font-mono bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800/40 px-3 py-1.5 rounded-full text-neutral-600 dark:text-neutral-400">Jangkauan
                                     Akar Rumput</span>
                                 <span
-                                    class="text-xs font-mono bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800/40 px-3 py-1.5 rounded-full text-neutral-600 dark:text-neutral-400">Keberlanjutan
+                                    class="text-xs font-mono bg-brand-blue/8 dark:bg-brand-blue/15 border border-brand-blue/20 px-3 py-1.5 rounded-full text-brand-blue dark:text-brand-blue/90 font-medium">Keberlanjutan
                                     Ekologis</span>
                             </div>
                         </div>
@@ -705,7 +759,7 @@ onMounted(() => {
                                     class="space-y-6 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[1px] before:bg-neutral-200 dark:before:bg-neutral-800 pl-6">
                                     <div class="relative group">
                                         <div
-                                            class="absolute -left-[30px] top-1.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#0c0c0b] bg-brand-moss group-hover:scale-125 transition-transform shadow-xs">
+                                            class="absolute -left-[1.375rem] top-1.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#0c0c0b] bg-brand-moss group-hover:scale-125 transition-transform shadow-xs">
                                         </div>
                                         <span class="text-xs font-mono text-neutral-400 uppercase tracking-widest">2024
                                             — Sekarang</span>
@@ -720,7 +774,7 @@ onMounted(() => {
 
                                     <div class="relative group">
                                         <div
-                                            class="absolute -left-[30px] top-1.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#0c0c0b] bg-brand-steel group-hover:scale-125 transition-transform shadow-xs">
+                                            class="absolute -left-[1.375rem] top-1.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#0c0c0b] bg-brand-steel group-hover:scale-125 transition-transform shadow-xs">
                                         </div>
                                         <span class="text-xs font-mono text-neutral-400 uppercase tracking-widest">2022
                                             — 2024</span>
@@ -736,7 +790,7 @@ onMounted(() => {
 
                                     <div class="relative group">
                                         <div
-                                            class="absolute -left-[30px] top-1.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#0c0c0b] bg-brand-steel group-hover:scale-125 transition-transform shadow-xs">
+                                            class="absolute -left-[1.375rem] top-1.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#0c0c0b] bg-brand-steel group-hover:scale-125 transition-transform shadow-xs">
                                         </div>
                                         <span class="text-xs font-mono text-neutral-400 uppercase tracking-widest">2020
                                             — 2022</span>
@@ -764,7 +818,7 @@ onMounted(() => {
                                     class="space-y-8 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[1px] before:bg-neutral-200 dark:before:bg-neutral-800 pl-6">
                                     <div class="relative group">
                                         <div
-                                            class="absolute -left-[30px] top-1.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#0c0c0b] bg-brand-moss group-hover:scale-125 transition-transform shadow-xs">
+                                            class="absolute -left-[1.375rem] top-1.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#0c0c0b] bg-brand-moss group-hover:scale-125 transition-transform shadow-xs">
                                         </div>
                                         <span class="text-xs font-mono text-neutral-400 uppercase tracking-widest">2018
                                             — 2020</span>
@@ -780,7 +834,7 @@ onMounted(() => {
 
                                     <div class="relative group">
                                         <div
-                                            class="absolute -left-[30px] top-1.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#0c0c0b] bg-brand-steel group-hover:scale-125 transition-transform shadow-xs">
+                                            class="absolute -left-[1.375rem] top-1.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#0c0c0b] bg-brand-steel group-hover:scale-125 transition-transform shadow-xs">
                                         </div>
                                         <span class="text-xs font-mono text-neutral-400 uppercase tracking-widest">2015
                                             — 2018</span>
@@ -802,16 +856,16 @@ onMounted(() => {
                 <section id="projects" class="scroll-mt-32 min-h-screen">
                     <div class="space-y-8">
                         <div
-                            class="border-b border-neutral-200 dark:border-neutral-800/40 pb-4 flex justify-between items-center">
+                            class="border-b border-neutral-200 dark:border-neutral-800/40 pb-4 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
                             <h2 class="text-sm uppercase tracking-widest text-neutral-400 font-mono font-semibold">
                                 Projek yang dikerjakan</h2>
-                            <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-4 justify-between sm:justify-end">
                                 <button v-if="isOwner" @click="showCreateModal = true"
-                                    class="text-xs font-mono text-brand-moss border border-brand-moss/35 hover:bg-brand-moss hover:text-white px-3 py-1 rounded-full cursor-pointer focus:outline-none transition-colors">
-                                    + Tambahkan Projek Baru
+                                    class="text-xs sm:text-sm font-medium text-brand-moss border border-brand-moss/35 hover:bg-brand-moss hover:text-white px-3 py-1 rounded-full cursor-pointer focus:outline-none transition-colors">
+                                    Tambahkan Projek Baru
                                 </button>
-                                <span class="text-sm font-mono text-neutral-400">Projek Selesai: {{ projects.length
-                                    }}</span>
+                                <span class="text-xs sm:text-sm font-medium text-neutral-400">{{ projects.length
+                                    }} Projek</span>
                             </div>
                         </div>
 
@@ -821,10 +875,10 @@ onMounted(() => {
                                 <!-- info details -->
                                 <div class="lg:col-span-6 flex flex-col justify-between space-y-6">
                                     <div class="space-y-4">
-                                        <div class="flex items-center gap-3 text-xs font-mono text-neutral-400">
-                                            <span>PROJEK PILIHAN</span>
+                                        <div class="flex items-center justify-between gap-3 text-xs font-sans text-neutral-400 w-full font-semibold">
+                                            <span class="whitespace-nowrap uppercase tracking-wider">PROJEK PILIHAN</span>
                                             <span
-                                                class="text-xs text-brand-moss bg-brand-moss/10 px-2.5 py-0.5 rounded-full border border-brand-moss/20 font-semibold">
+                                                class="text-xs text-brand-moss bg-brand-moss/10 px-2.5 h-5 rounded-full border border-brand-moss/20 font-semibold whitespace-nowrap inline-flex items-center justify-center leading-none">
                                                 {{ paginatedProjects[0].focus_areas.split(',')[0] }}
                                             </span>
                                         </div>
@@ -846,7 +900,7 @@ onMounted(() => {
                                         <div class="flex flex-wrap gap-1.5">
                                             <span v-for="tech in paginatedProjects[0].focus_areas.split(',')"
                                                 :key="tech"
-                                                class="text-xs font-mono px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800/40 text-neutral-600 dark:text-neutral-400">
+                                                class="text-xs font-sans px-2.5 h-5 rounded-full bg-brand-blue/10 border border-brand-blue/20 text-brand-blue font-semibold whitespace-nowrap inline-flex items-center justify-center leading-none">
                                                 {{ tech.trim() }}
                                             </span>
                                         </div>
@@ -865,20 +919,21 @@ onMounted(() => {
                                 </div>
 
                                 <div
-                                    class="lg:col-span-12 pt-4 border-t border-neutral-200 dark:border-neutral-800 flex items-center gap-4">
-                                    <button @click="selectProject(paginatedProjects[0])"
-                                        class="text-sm font-mono px-4 py-2 bg-neutral-900 hover:bg-brand-moss text-white dark:bg-neutral-100 dark:hover:bg-brand-moss dark:text-neutral-900 dark:hover:text-white rounded-full transition-colors cursor-pointer focus:outline-none">
-                                        Laporan ({{ paginatedProjects[0].comments_count || 0 }})
-                                    </button>
-
-                                    <div class="flex items-center gap-3">
+                                    class="lg:col-span-12 pt-4 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between w-full gap-3">
+                                    <div>
                                         <a :href="'/projects/' + paginatedProjects[0].id"
-                                            class="text-xs font-mono text-neutral-400 hover:text-brand-moss font-semibold">
+                                            class="text-xs font-sans text-brand-blue hover:text-brand-blue/80 font-bold border border-brand-blue/30 px-3.5 h-8 rounded-full hover:bg-brand-blue/5 transition-all whitespace-nowrap inline-flex items-center justify-center leading-none">
                                             Full Page
                                         </a>
+                                    </div>
+                                    <div class="flex items-center gap-3.5 shrink-0">
                                         <button v-if="isOwner" @click="deleteProject(paginatedProjects[0].id)"
-                                            class="text-xs font-mono text-red-500 hover:text-red-655 font-semibold cursor-pointer focus:outline-none">
+                                            class="text-xs font-sans text-red-500 hover:text-red-600 font-semibold cursor-pointer focus:outline-none whitespace-nowrap inline-flex items-center justify-center h-8 leading-none">
                                             Delete
+                                        </button>
+                                        <button @click="selectProject(paginatedProjects[0])"
+                                            class="text-xs sm:text-sm font-sans px-4 h-8 bg-neutral-900 hover:bg-brand-blue text-white dark:bg-neutral-100 dark:hover:bg-brand-blue dark:text-neutral-900 dark:hover:text-white rounded-full transition-colors cursor-pointer focus:outline-none whitespace-nowrap inline-flex items-center justify-center leading-none">
+                                            Laporan ({{ paginatedProjects[0].comments_count || 0 }})
                                         </button>
                                     </div>
                                 </div>
@@ -898,10 +953,10 @@ onMounted(() => {
                                         </div>
 
                                         <div
-                                            class="flex justify-between items-center text-xs font-mono text-neutral-400">
-                                            <span>ARCHIVE PROJEK</span>
+                                            class="flex justify-between items-center text-xs font-sans text-neutral-400 font-semibold">
+                                            <span class="whitespace-nowrap uppercase tracking-wider">ARCHIVE PROJEK</span>
                                             <span
-                                                class="text-xs text-brand-steel bg-brand-steel/5 px-2 py-0.5 rounded border border-brand-steel/10">
+                                                class="text-xs text-brand-blue bg-brand-blue/10 px-2.5 h-5 rounded-full border border-brand-blue/20 font-semibold whitespace-nowrap inline-flex items-center justify-center leading-none">
                                                 {{ project.focus_areas.split(',')[0] }}
                                             </span>
                                         </div>
@@ -921,24 +976,32 @@ onMounted(() => {
                                     </div>
 
                                     <div
-                                        class="pt-6 border-t border-neutral-200 dark:border-neutral-800 flex flex-col gap-2.5 mt-6 items-start">
-                                        <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-                                            {{ project.focus_areas.split(',').slice(0, 2).join(', ') }}
-                                        </span>
+                                        class="pt-6 border-t border-neutral-200 dark:border-neutral-800 flex flex-col gap-3.5 mt-6 w-full">
+                                        <div class="flex flex-wrap gap-1.5 justify-start">
+                                            <span v-for="tech in project.focus_areas.split(',').slice(0, 2)"
+                                                :key="tech"
+                                                class="text-xs font-sans px-2.5 h-5 rounded-full bg-brand-blue/10 border border-brand-blue/20 text-brand-blue font-semibold whitespace-nowrap inline-flex items-center justify-center leading-none">
+                                                {{ tech.trim() }}
+                                            </span>
+                                        </div>
 
-                                        <div class="flex items-center gap-4">
-                                            <a :href="'/projects/' + project.id"
-                                                class="text-xs font-mono text-neutral-400 hover:text-brand-moss font-semibold">
-                                                Full Page
-                                            </a>
-                                            <button v-if="isOwner" @click="deleteProject(project.id)"
-                                                class="text-xs font-mono text-red-500 hover:text-red-655 font-semibold cursor-pointer focus:outline-none">
-                                                Delete
-                                            </button>
-                                            <button @click="selectProject(project)"
-                                                class="text-sm font-mono text-brand-moss group-hover:underline flex items-center gap-1 cursor-pointer focus:outline-none font-semibold">
-                                                Updates ({{ project.comments_count || 0 }})
-                                            </button>
+                                        <div class="flex items-center justify-between w-full gap-3">
+                                            <div>
+                                                <a :href="'/projects/' + project.id"
+                                                    class="text-xs font-sans text-blue-400 hover:text-brand-blue/80 font-bold border border-brand-blue/30 px-3.5 h-8 rounded-full hover:bg-brand-blue/5 transition-all whitespace-nowrap inline-flex items-center justify-center leading-none">
+                                                    Full Page
+                                                </a>
+                                            </div>
+                                            <div class="flex items-center gap-3.5 shrink-0">
+                                                <button v-if="isOwner" @click="deleteProject(project.id)"
+                                                    class="text-xs font-sans text-red-500 hover:text-red-600 font-semibold cursor-pointer focus:outline-none whitespace-nowrap inline-flex items-center justify-center h-8 leading-none">
+                                                    Delete
+                                                </button>
+                                                <button @click="selectProject(project)"
+                                                    class="text-xs sm:text-sm font-sans text-brand-blue group-hover:underline inline-flex items-center justify-center gap-1 cursor-pointer focus:outline-none font-bold whitespace-nowrap h-8 leading-none">
+                                                    Updates ({{ project.comments_count || 0 }})
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </article>
@@ -948,13 +1011,13 @@ onMounted(() => {
                             <div v-if="totalPages > 1"
                                 class="flex justify-center items-center gap-4 pt-8 font-mono text-sm">
                                 <button :disabled="currentPage === 1" @click="handlePageChange(currentPage - 1)"
-                                    class="px-4 py-2 border border-neutral-200 dark:border-neutral-800 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-900 disabled:opacity-40 cursor-pointer focus:outline-none transition-colors">
+                                    class="px-4 py-2 border border-brand-blue/30 text-brand-blue rounded-full hover:bg-brand-blue/5 disabled:hover:bg-transparent cursor-pointer focus:outline-none transition-colors font-bold">
                                     Previous
                                 </button>
                                 <span class="text-neutral-500">Page {{ currentPage }} of {{ totalPages }}</span>
                                 <button :disabled="currentPage === totalPages"
                                     @click="handlePageChange(currentPage + 1)"
-                                    class="px-4 py-2 border border-neutral-200 dark:border-neutral-800 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-900 disabled:opacity-40 cursor-pointer focus:outline-none transition-colors">
+                                    class="px-4 py-2 border border-brand-blue/30 text-brand-blue rounded-full hover:bg-brand-blue/5 disabled:hover:bg-transparent cursor-pointer focus:outline-none transition-colors font-bold">
                                     Next
                                 </button>
                             </div>
@@ -970,13 +1033,13 @@ onMounted(() => {
                                 Kontak</h2>
                         </div>
 
-                        <div class="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6">
+                        <div class="gap-6">
                             <div class="bento-card rounded-3xl p-8 flex flex-col justify-between min-h-[220px]">
                                 <div class="space-y-4">
                                     <h3 class="font-serif text-3xl font-extrabold leading-tight">Mari kita bangun
                                         sesuatu yang luar biasa.</h3>
                                     <p
-                                        class="text-base leading-relaxed text-neutral-600 dark:text-neutral-400 font-serif max-w-[45ch]">
+                                        class="text-base leading-relaxed text-neutral-600 dark:text-neutral-400 font-seri">
                                         Saya terbuka untuk ruang lingkup konsultasi, audit arsitektur backend, atau
                                         integrasi sistem desain. Kirimkan garis besar proyek Anda dan mari terhubung.
                                     </p>
@@ -992,38 +1055,7 @@ onMounted(() => {
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-4">
-                                <a href="https://instagram.com" target="_blank"
-                                    class="bento-card rounded-2xl p-5 flex flex-col justify-between hover:border-brand-moss group text-left min-h-[100px]">
-                                    <span
-                                        class="block text-xs font-mono text-neutral-400 uppercase tracking-widest">Source</span>
-                                    <span
-                                        class="block font-serif font-bold text-base mt-3 group-hover:text-brand-moss transition-colors">Instagram</span>
-                                </a>
 
-                                <a href="mailto:zack@example.com"
-                                    class="bento-card rounded-2xl p-5 flex flex-col justify-between hover:border-brand-moss group text-left min-h-[100px]">
-                                    <span
-                                        class="block text-xs font-mono text-neutral-400 uppercase tracking-widest">Email</span>
-                                    <span
-                                        class="block font-serif font-bold text-base mt-3 group-hover:text-brand-moss transition-colors">Email</span>
-                                </a>
-
-                                <a href="https://linkedin.com" target="_blank"
-                                    class="bento-card rounded-2xl p-5 flex flex-col justify-between hover:border-brand-moss group text-left min-h-[100px]">
-                                    <span
-                                        class="block text-xs font-mono text-neutral-400 uppercase tracking-widest">Professional</span>
-                                    <span
-                                        class="block font-serif font-bold text-base mt-3 group-hover:text-brand-moss transition-colors">LinkedIn</span>
-                                </a>
-
-                                <div class="bento-card rounded-2xl p-5 flex flex-col justify-between min-h-[100px]">
-                                    <span
-                                        class="block text-xs font-mono text-neutral-400 uppercase tracking-widest">Response
-                                        time</span>
-                                    <span class="block font-serif font-bold text-base mt-3">&lt; 24 Hours</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </section>
@@ -1042,37 +1074,37 @@ onMounted(() => {
             class="fixed inset-0 z-50 flex justify-start bg-black/40 dark:bg-black/70 backdrop-blur-xs transition-opacity duration-300"
             @click.self="closeProject">
             <div
-                class="w-full max-w-xl bg-[#fafaf9] dark:bg-[#0c0c0b] h-full overflow-y-auto shadow-2xl flex flex-col border-r border-neutral-200 dark:border-neutral-800 animate-slide-in-left relative">
+                class="w-full max-w-xl bg-[#eff8ff] dark:bg-[#080b0e] h-full overflow-y-auto shadow-2xl flex flex-col border-r border-neutral-200 dark:border-neutral-800 animate-slide-in-left relative">
 
                 <header
-                    class="p-6 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center sticky top-0 bg-[#fafaf9]/95 dark:bg-[#0c0c0b]/95 backdrop-blur-md z-10">
-                    <div>
-                        <span class="text-xs font-mono text-brand-steel uppercase tracking-widest">Entry Details</span>
-                        <h2 class="text-2xl font-serif font-bold mt-1 text-neutral-900 dark:text-neutral-50">{{
-                            selectedProject.title }}</h2>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <a :href="'/projects/' + selectedProject.id"
-                            class="text-xs font-mono text-brand-moss hover:underline font-semibold">
-                            Full Page
-                        </a>
-                        <button v-if="isOwner" @click="openEditModal(selectedProject)"
-                            class="text-xs font-mono text-brand-steel hover:underline font-semibold cursor-pointer focus:outline-none">
-                            Edit
-                        </button>
-                        <button v-if="isOwner" @click="deleteProject(selectedProject.id)"
-                            class="text-xs font-mono text-red-500 hover:underline font-semibold cursor-pointer focus:outline-none">
-                            Delete
-                        </button>
+                    class="p-6 border-b border-neutral-200 dark:border-neutral-800 flex flex-col gap-3 sticky top-0 bg-[#eff8ff]/95 dark:bg-[#080b0e]/95 backdrop-blur-md z-10">
+                    <div class="flex items-center justify-between w-full">
+                        <div class="flex items-center gap-4">
+                            <a :href="'/projects/' + selectedProject.id"
+                                class="text-xs font-sans text-brand-moss hover:underline font-semibold whitespace-nowrap">
+                                Full Page
+                            </a>
+                            <button v-if="isOwner" @click="openEditModal(selectedProject)"
+                                class="text-xs font-sans text-brand-steel hover:underline font-semibold cursor-pointer focus:outline-none whitespace-nowrap">
+                                Edit
+                            </button>
+                            <button v-if="isOwner" @click="deleteProject(selectedProject.id)"
+                                class="text-xs font-sans text-red-500 hover:underline font-semibold cursor-pointer focus:outline-none whitespace-nowrap">
+                                Delete
+                            </button>
 
-                        <span class="text-neutral-300 dark:text-neutral-800 font-mono text-xs">|</span>
+                            <span class="text-neutral-300 dark:text-neutral-800 font-sans text-xs">|</span>
 
-                        <button @click="closeProject"
-                            class="p-2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 cursor-pointer focus:outline-none transition-colors font-mono text-sm font-semibold"
-                            aria-label="Close panel">
-                            Close
-                        </button>
+                            <button @click="closeProject"
+                                class="text-xs font-sans text-red-400 hover:text-neutral-600 dark:hover:text-neutral-200 cursor-pointer focus:outline-none transition-colors font-semibold whitespace-nowrap"
+                                aria-label="Close panel">
+                                Close
+                            </button>
+                        </div>
                     </div>
+                    <h2 class="text-2xl font-serif font-bold text-neutral-900 dark:text-neutral-50 leading-tight">
+                        {{ selectedProject.title }}
+                    </h2>
                 </header>
 
                 <div class="p-6 space-y-8 flex-grow">
@@ -1113,7 +1145,7 @@ onMounted(() => {
 
                         <div class="flex flex-wrap gap-2">
                             <span v-for="tech in selectedProject.focus_areas.split(',')" :key="tech"
-                                class="text-xs font-mono px-2.5 py-0.5 border border-neutral-200 dark:border-neutral-800/60 rounded-full bg-neutral-50 dark:bg-neutral-900">
+                                class="text-xs font-sans px-2.5 h-5 border border-brand-blue/20 rounded-full bg-brand-blue/10 text-brand-blue font-semibold inline-flex items-center justify-center leading-none">
                                 {{ tech.trim() }}
                             </span>
                         </div>
@@ -1194,7 +1226,7 @@ onMounted(() => {
                             {{ isEditing ? 'Edit Program Details' : 'Tamabahkan Program' }}</h2>
                     </div>
                     <button @click="closeCreateModal"
-                        class="p-1 hover:text-neutral-600 dark:hover:text-neutral-200 text-neutral-400 font-mono text-sm cursor-pointer focus:outline-none">
+                        class="p-1 hover:text-neutral-600 dark:hover:text-neutral-200 text-red-400 font-mono text-sm cursor-pointer focus:outline-none">
                         Close
                     </button>
                 </div>
@@ -1203,7 +1235,7 @@ onMounted(() => {
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-1">
                             <label for="new_title"
-                                class="block text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Judul
+                                class="block text-[14px] font-mono text-neutral-500 uppercase tracking-widest">Judul
                                 Program *</label>
                             <input id="new_title" v-model="newTitle" type="text" placeholder="Judul Program" required
                                 class="w-full p-2.5 border border-neutral-200 dark:border-neutral-800 rounded bg-neutral-50 dark:bg-neutral-950 focus:outline-none focus:border-brand-moss transition-colors text-neutral-900 dark:text-neutral-100" />
@@ -1211,7 +1243,7 @@ onMounted(() => {
 
                         <div class="space-y-1">
                             <label for="new_tech"
-                                class="block text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Fokus
+                                class="block text-[14px] font-mono text-neutral-500 uppercase tracking-widest">Fokus
                                 Aksi *</label>
                             <input id="new_tech" v-model="newFocusAreas" type="text"
                                 placeholder="Contoh: Konservasi, Edukasi" required
@@ -1221,7 +1253,7 @@ onMounted(() => {
 
                     <div class="space-y-1">
                         <label for="new_summary"
-                            class="block text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Ringkasan
+                            class="block text-[14px] font-mono text-neutral-500 uppercase tracking-widest">Ringkasan
                             *</label>
                         <input id="new_summary" v-model="newSummary" type="text" placeholder="Ringkasan Singkat..."
                             required
@@ -1230,7 +1262,7 @@ onMounted(() => {
 
                     <div class="space-y-1">
                         <label for="new_description"
-                            class="block text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Misi Program
+                            class="block text-[14px] font-mono text-neutral-500 uppercase tracking-widest">Misi Program
                             Lengkap *</label>
                         <textarea id="new_description" v-model="newDescription" rows="4"
                             placeholder="Deskripsi Misi Program" required
@@ -1241,7 +1273,7 @@ onMounted(() => {
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                         <div class="space-y-1">
-                            <label class="block text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Gambar
+                            <label class="block text-[14px] font-mono text-neutral-400 uppercase tracking-widest">Gambar
                                 Sampul {{ isEditing ? '(Optional)' : '(Required) *' }}</label>
                             <input type="file" accept="image/*" :required="!isEditing" @change="handleMainImageChange"
                                 class="w-full text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-mono file:bg-neutral-100 dark:file:bg-neutral-900 file:text-neutral-700 dark:file:text-neutral-300 hover:file:bg-neutral-200 dark:hover:file:bg-neutral-800 cursor-pointer" />
@@ -1254,7 +1286,7 @@ onMounted(() => {
                         </div>
 
                         <div class="space-y-1">
-                            <label class="block text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Gambar
+                            <label class="block text-[14px] font-mono text-neutral-400 uppercase tracking-widest">Gambar
                                 Detail Program</label>
                             <input type="file" accept="image/*" multiple @change="handleGalleryImagesChange"
                                 class="w-full text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-mono file:bg-neutral-100 dark:file:bg-neutral-900 file:text-neutral-700 dark:file:text-neutral-300 hover:file:bg-neutral-200 dark:hover:file:bg-neutral-800 cursor-pointer" />
@@ -1420,25 +1452,25 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-    background: #fafaf9;
+    background: #eff8ff;
 }
 
 .dark ::-webkit-scrollbar-track {
-    background: #070707;
+    background: #07090c;
 }
 
 ::-webkit-scrollbar-thumb {
     background: #d6d6d4;
     border-radius: 9999px;
-    border: 3px solid #fafaf9;
+    border: 3px solid #eff8ff;
 }
 
 .dark ::-webkit-scrollbar-thumb {
     background: #2a2a28;
-    border: 3px solid #070707;
+    border: 3px solid #07090c;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #879673;
+    background: #3182ce;
 }
 </style>
